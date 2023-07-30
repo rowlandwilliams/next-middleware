@@ -21,7 +21,7 @@ export default function Login() {
     });
 
     if (result?.ok) {
-      router.push("/dashboard");
+      router.push("/auth/dashboard");
     }
   };
 

@@ -1,34 +1,42 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
 const noAccessIfAuth = ["/login", "/register"];
-const requireAuth = ["/dashboard", "/suh"];
-const requireAdmin = ["/admin"];
+const requireAuth = ["/auth"];
+const superAdmin = ["users"];
 
 export const middleware = async (req: NextRequest) => {
   const session = await getToken({ req, secret: process.env.AUTH_SECRET });
   const {
     nextUrl: { pathname },
   } = req;
+  const authHome = new URL("/auth/dashboard", req.url);
+  console.log("middleware", session);
 
   if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(authHome);
   }
 
-  if (session && noAccessIfAuth.some((path) => pathname.startsWith(path))) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
+  if (session) {
+    if (noAccessIfAuth.some((path) => pathname.startsWith(path))) {
+      return NextResponse.redirect(authHome);
+    }
 
-  if (!session && requireAuth.some((path) => pathname.startsWith(path))) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+    if (pathname.includes("admin")) {
+      if (session.role < 2) {
+        return NextResponse.redirect(authHome);
+      }
 
-  if (
-    session &&
-    session.role !== 2 &&
-    requireAdmin.some((path) => pathname.startsWith(path))
-  ) {
+      if (
+        superAdmin.some((path) => pathname.includes(path)) &&
+        session.role < 3
+      ) {
+        return NextResponse.redirect(authHome);
+      }
+
+      return NextResponse.next();
+    }
+  } else if (requireAuth.some((path) => pathname.startsWith(path))) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
