@@ -2,7 +2,6 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 const noAccessIfAuth = ["/login", "/register"];
-const requireAuth = ["/auth"];
 const superAdmin = ["users"];
 
 export const middleware = async (req: NextRequest) => {
@@ -11,32 +10,41 @@ export const middleware = async (req: NextRequest) => {
     nextUrl: { pathname },
   } = req;
   const authHome = new URL("/auth/dashboard", req.url);
-  console.log("middleware", session);
+  const authRoute = pathname.startsWith("/auth");
 
-  if (pathname === "/") {
+  if (pathname === "/" || pathname === "/auth/") {
     return NextResponse.redirect(authHome);
   }
 
   if (session) {
     if (noAccessIfAuth.some((path) => pathname.startsWith(path))) {
-      return NextResponse.redirect(authHome);
+      return NextResponse.redirect(authHome, {
+        headers: { Location: authHome.pathname },
+      });
     }
 
     if (pathname.includes("admin")) {
-      if (session.role < 2) {
-        return NextResponse.redirect(authHome);
+      const loggedInUserIsAdmin = session.role > 1;
+      const loggedInUserIsSuperAdmin = session.role > 2;
+
+      if (!loggedInUserIsAdmin) {
+        return NextResponse.redirect(authHome, {
+          headers: { Location: authHome.pathname },
+        });
       }
 
-      if (
-        superAdmin.some((path) => pathname.includes(path)) &&
-        session.role < 3
-      ) {
-        return NextResponse.redirect(authHome);
+      const superAdminRoute = superAdmin.some((path) =>
+        pathname.includes(path)
+      );
+      if (superAdminRoute && !loggedInUserIsSuperAdmin) {
+        return NextResponse.redirect(authHome, {
+          headers: { Location: authHome.pathname },
+        });
       }
 
       return NextResponse.next();
     }
-  } else if (requireAuth.some((path) => pathname.startsWith(path))) {
+  } else if (authRoute) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
