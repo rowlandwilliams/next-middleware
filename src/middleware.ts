@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 
 const noAccessIfAuth = ["/login", "/register"];
 const requireAuth = ["/dashboard", "/suh"];
+const requireAdmin = ["/admin"];
 
 export const middleware = async (req: NextRequest) => {
   const session = await getToken({ req, secret: process.env.AUTH_SECRET });
@@ -20,6 +21,14 @@ export const middleware = async (req: NextRequest) => {
   }
 
   if (!session && requireAuth.some((path) => pathname.startsWith(path))) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  if (
+    session &&
+    session.role !== 2 &&
+    requireAdmin.some((path) => pathname.startsWith(path))
+  ) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

@@ -12,11 +12,15 @@ export const authOptions: NextAuthOptions = {
           password: string;
         };
 
-        console.log(email, password);
+        if (email === "admin@email.com" && password === "password") {
+          return { id: "1", name: "Admin", email: "admin@email.com", role: 2 };
+        }
 
-        if (email !== "admin@email.com" || password !== "password") return null;
+        if (email === "user@email.com" && password === "password") {
+          return { id: "2", name: "User", email: "user@email.com", role: 1 };
+        }
 
-        return { id: "1", name: "Admin", email: "admin@email.com" };
+        return null;
       },
     }),
   ],

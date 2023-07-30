@@ -3,8 +3,6 @@ import { Inter } from "next/font/google";
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,6 +40,7 @@ export default function Login() {
           value={email}
           placeholder="email"
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
           className="my-2 block w-full rounded-md border border-gray-300 p-3 text-sm placeholder-gray-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-flow-purple"
@@ -49,6 +48,7 @@ export default function Login() {
           value={password}
           placeholder="password"
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <button
           type="submit"
