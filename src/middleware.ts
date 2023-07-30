@@ -18,9 +18,7 @@ export const middleware = async (req: NextRequest) => {
 
   if (session) {
     if (noAccessIfAuth.some((path) => pathname.startsWith(path))) {
-      return NextResponse.redirect(authHome, {
-        headers: { Location: authHome.pathname },
-      });
+      return NextResponse.redirect(authHome);
     }
 
     if (pathname.includes("admin")) {
@@ -28,18 +26,14 @@ export const middleware = async (req: NextRequest) => {
       const loggedInUserIsSuperAdmin = session.role > 2;
 
       if (!loggedInUserIsAdmin) {
-        return NextResponse.redirect(authHome, {
-          headers: { Location: authHome.pathname },
-        });
+        return NextResponse.redirect(authHome);
       }
 
       const superAdminRoute = superAdmin.some((path) =>
         pathname.includes(path)
       );
       if (superAdminRoute && !loggedInUserIsSuperAdmin) {
-        return NextResponse.redirect(authHome, {
-          headers: { Location: authHome.pathname },
-        });
+        return NextResponse.redirect(authHome);
       }
 
       return NextResponse.next();
